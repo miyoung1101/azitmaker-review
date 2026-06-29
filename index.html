@@ -570,6 +570,25 @@ function markCompleted(reviewer, reviewee) {
   localStorage.setItem(PROGRESS_KEY, JSON.stringify(all));
 }
 
+// ── 답변 임시 저장 (작성자가 모든 동료를 끝낼 때까지 로컬에 보관) ──
+const ANSWERS_KEY = 'azit_review_answers';
+function loadAnswers() { return JSON.parse(localStorage.getItem(ANSWERS_KEY) || '{}'); }
+function saveAnswerLocally(reviewer, reviewee, payload) {
+  const all = loadAnswers();
+  if (!all[reviewer]) all[reviewer] = {};
+  all[reviewer][reviewee] = payload;
+  localStorage.setItem(ANSWERS_KEY, JSON.stringify(all));
+}
+function getAnswers(reviewer) {
+  const all = loadAnswers();
+  return all[reviewer] || {};
+}
+function clearAnswers(reviewer) {
+  const all = loadAnswers();
+  delete all[reviewer];
+  localStorage.setItem(ANSWERS_KEY, JSON.stringify(all));
+}
+
 // ── 작성자 변경 → 대상자 목록 재생성 (본인 + 이미 리뷰한 동료 제외) ──
 function onReviewerChange() {
   const reviewer = document.getElementById('reviewerSelect').value;
@@ -723,13 +742,34 @@ async function submitForm() {
   });
 
   try {
-    await fetch(SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      body: JSON.stringify(payload),
-    });
-    // 진행상황 기록 + 완료 화면
+    // 로컬에 임시 저장
+    saveAnswerLocally(reviewer, rv, payload);
     markCompleted(reviewer, rv);
+
+    const remaining = MEMBERS.filter(m => m !== reviewer && !getCompleted(reviewer).includes(m));
+
+    if (remaining.length === 0) {
+      // 모든 동료 리뷰 완료 → 한 번에 스프레드시트로 전송
+      document.getElementById('submitText').textContent = '스프레드시트 전송 중...';
+      const answers = getAnswers(reviewer);
+      for (const [, ans] of Object.entries(answers)) {
+        await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(ans) });
+      }
+      clearAnswers(reviewer);
+      document.getElementById('done-title').textContent = '🎉 모든 리뷰가 완료됐습니다!';
+      document.getElementById('done-desc').innerHTML = '소중한 피드백 감사합니다.<br>모든 동료 리뷰가 스프레드시트에 저장됐어요.';
+      document.querySelector('.sheet-badge').innerHTML = `
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        전체 리뷰 스프레드시트 저장 완료 ✅`;
+    } else {
+      // 아직 남은 동료 있음 → 임시 저장만
+      document.getElementById('done-title').textContent = '저장됐습니다!';
+      document.getElementById('done-desc').innerHTML = `소중한 피드백 감사합니다.<br>모든 동료를 완료하면 스프레드시트로 전송돼요.`;
+      document.querySelector('.sheet-badge').innerHTML = `
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v10l4 4"/><circle cx="12" cy="12" r="10"/></svg>
+        임시 저장됨 (전송 대기 중)`;
+    }
+
     renderDoneStats(reviewer);
     document.querySelector('.wrap').style.display = 'none';
     document.getElementById('done-screen').style.display = 'block';
