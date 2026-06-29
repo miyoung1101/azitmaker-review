@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍋 아지트메이커 동료 리뷰</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+/* ── 리셋 ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Apple SD Gothic Neo', sans-serif;
+  background: #f2f1ed;
+  color: #1a1a1a;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── 설정 배너 (SCRIPT_URL 미입력 시) ── */
+#setup-banner {
+  background: #fff3cd; border-bottom: 2px solid #ffc107;
+  padding: 14px 1.5rem; text-align: center; font-size: 13px;
+  color: #856404; display: none;
+}
+#setup-banner a { color: #856404; font-weight: 700; }
+
+/* ── 헤더 ── */
+.header {
+  background: #1a1a1a; color: #fff;
+  padding: 2.75rem 1.5rem 2.25rem; text-align: center;
+}
+.quarter-badge {
+  display: inline-block; background: #f5c842; color: #1a1a1a;
+  font-size: 11px; font-weight: 800; letter-spacing: .06em;
+  padding: 4px 14px; border-radius: 20px; margin-bottom: 1rem;
+}
+.header h1 { font-size: 26px; font-weight: 800; margin-bottom: .4rem; letter-spacing: -.02em; }
+.header p  { font-size: 14px; color: #999; }
+
+/* ── 컨테이너 ── */
+.wrap { max-width: 680px; margin: 0 auto; padding: 0 1rem 5rem; }
+
+/* ── 익명 안내 ── */
+.anon-chip {
+  display: flex; align-items: center; gap: 8px;
+  background: #fff; border: 1.5px solid #d4edda; border-radius: 10px;
+  padding: 10px 14px; font-size: 13px; color: #155724;
+  margin: 1.5rem auto;
+}
+.anon-chip .dot { width: 8px; height: 8px; background: #28a745; border-radius: 50%; flex-shrink: 0; animation: blink 1.6s ease infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ── 진행 바 ── */
+.progress-bar-wrap { margin: 1rem 0 1.5rem; }
+.progress-label { display: flex; justify-content: space-between; font-size: 12px; color: #888; margin-bottom: 6px; }
+.progress-bar { height: 4px; background: #e0e0e0; border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; background: #1a1a1a; border-radius: 2px; transition: width .4s ease; width: 0%; }
+
+/* ── 카드 ── */
+.card {
+  background: #fff; border-radius: 14px; border: 1px solid #e8e8e8;
+  padding: 1.5rem; margin-bottom: .9rem;
+  transition: box-shadow .2s;
+}
+.card:focus-within { box-shadow: 0 0 0 2px #1a1a1a; }
+.card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1.1rem; padding-bottom: .9rem; border-bottom: 1px solid #f0f0f0; }
+.card-icon { width: 38px; height: 38px; background: #f2f1ed; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.card-title { font-size: 14px; font-weight: 700; }
+.card-sub   { font-size: 12px; color: #888; margin-top: 2px; }
+
+/* ── 대상자 선택 ── */
+.field-label { display: block; font-size: 13px; font-weight: 700; color: #444; margin-bottom: 8px; }
+select {
+  width: 100%; padding: 13px 16px; border: 1.5px solid #e0e0e0;
+  border-radius: 10px; font-size: 15px; color: #1a1a1a; background: #fff;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center;
+  cursor: pointer; transition: border-color .2s;
+}
+select:focus { outline: none; border-color: #1a1a1a; }
+select:disabled { background-color: #f5f4f0; color: #888; cursor: not-allowed; background-image: none; }
+
+/* ── Google 로그인 ── */
+.google-login-wrap {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 12px; padding: 8px 0 4px;
+}
+.google-login-wrap p { font-size: 13px; color: #666; }
+.google-logged-in {
+  display: none; align-items: center; gap: 10px;
+  background: #f0faf4; border: 1.5px solid #b7e4c7;
+  border-radius: 10px; padding: 10px 14px; font-size: 13px; color: #1a6a38;
+  margin-bottom: 4px;
+}
+.google-logged-in .avatar {
+  width: 30px; height: 30px; border-radius: 50%; object-fit: cover;
+}
+.google-logged-in .info { display: flex; flex-direction: column; gap: 1px; }
+.google-logged-in .name { font-weight: 700; font-size: 14px; }
+.google-logged-in .email { font-size: 11px; color: #555; }
+.google-login-divider {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: #bbb; width: 100%; margin: 4px 0;
+}
+.google-login-divider::before, .google-login-divider::after {
+  content: ''; flex: 1; height: 1px; background: #e8e7e3;
+}
+.btn-google-logout {
+  font-size: 11px; color: #aaa; background: none; border: none;
+  cursor: pointer; text-decoration: underline; padding: 0;
+}
+.lock-note {
+  display: none; align-items: center; gap: 6px;
+  margin-top: 9px; font-size: 12px; color: #888;
+}
+.lock-note a { color: #1a1a1a; font-weight: 700; text-decoration: underline; margin-left: 2px; }
+
+/* ── 섹션 레이블 ── */
+.section-lbl {
+  font-size: 11px; font-weight: 800; letter-spacing: .1em;
+  color: #888; text-transform: uppercase; margin: 2rem 0 .75rem;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-lbl::after { content:''; flex: 1; height: 1px; background: #e5e5e5; }
+
+/* ── 질문 ── */
+.question { margin-bottom: 1.6rem; padding-bottom: 1.6rem; border-bottom: 1px solid #f5f5f5; }
+.question:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+.q-meta { display: flex; align-items: flex-start; gap: 10px; margin-bottom: .9rem; }
+.q-num {
+  width: 22px; height: 22px; border-radius: 50%; background: #f0f0f0;
+  font-size: 10px; font-weight: 800; color: #666; display: flex;
+  align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;
+}
+.q-body .cat {
+  display: inline-block; font-size: 10px; font-weight: 700; color: #5c5b8a;
+  background: #eeedf8; border-radius: 4px; padding: 2px 7px; margin-bottom: 4px;
+}
+.q-body .text { font-size: 14px; color: #222; line-height: 1.55; }
+
+/* ── 슬라이더 ── */
+.slider-box { margin-top: .5rem; }
+.slider-ends { display: flex; justify-content: space-between; font-size: 10.5px; color: #bbb; margin-bottom: 6px; }
+input[type=range] {
+  -webkit-appearance: none; width: 100%; height: 6px; border-radius: 3px; outline: none; cursor: pointer;
+  background: linear-gradient(to right, #1a1a1a 0%, #1a1a1a var(--pct,44%), #e0e0e0 var(--pct,44%), #e0e0e0 100%);
+  transition: background .1s;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%;
+  background: #fff; border: 3px solid #1a1a1a;
+  box-shadow: 0 1px 4px rgba(0,0,0,.18); transition: transform .1s;
+}
+input[type=range]::-webkit-slider-thumb:active { transform: scale(1.25); }
+.score-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: .7rem; }
+.score-num  { font-size: 24px; font-weight: 800; min-width: 36px; text-align: center; }
+.score-chip {
+  font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+  background: #f0f0f0; color: #666; transition: background .2s, color .2s;
+}
+
+/* ── 제출 ── */
+.submit-wrap { text-align: center; margin-top: 2.5rem; }
+.btn-submit {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #1a1a1a; color: #fff; border: none;
+  padding: 15px 44px; border-radius: 50px;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  transition: opacity .15s, transform .12s;
+}
+.btn-submit:hover { opacity: .85; }
+.btn-submit:active { transform: scale(.97); }
+.btn-submit:disabled { opacity: .35; cursor: not-allowed; }
+.submit-hint { margin-top: 10px; font-size: 12px; color: #aaa; }
+
+/* ── 로딩 스피너 ── */
+.spinner {
+  width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,.3);
+  border-top-color: #fff; border-radius: 50%;
+  animation: spin .7s linear infinite; display: none;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── 완료 화면 ── */
+#done-screen { display: none; text-align: center; padding: 5rem 1rem; }
+.done-icon { font-size: 64px; margin-bottom: 1.25rem; }
+#done-screen h2 { font-size: 24px; font-weight: 800; margin-bottom: .5rem; }
+#done-screen p  { font-size: 14px; color: #666; line-height: 1.7; }
+.sheet-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #e6f4ea; border: 1px solid #c3e6cb; border-radius: 8px;
+  padding: 8px 14px; font-size: 13px; color: #155724; font-weight: 600; margin-top: 1.25rem;
+}
+.btn-another {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 1.5rem; padding: 12px 28px;
+  border: 2px solid #1a1a1a; border-radius: 50px;
+  font-size: 14px; font-weight: 700; background: transparent;
+  cursor: pointer; transition: background .15s;
+}
+.btn-another:hover { background: #f2f1ed; }
+
+/* ── 완료 화면 통계 카드 ── */
+.stats-card {
+  max-width: 420px; margin: 1.75rem auto 0; text-align: left;
+  background: #fff; border: 1px solid #e8e8e8; border-radius: 14px; padding: 1.4rem 1.5rem;
+}
+.stats-row { display: flex; align-items: baseline; gap: 4px; justify-content: center; }
+.stats-num { font-size: 30px; font-weight: 800; color: #1a1a1a; }
+.stats-slash { font-size: 20px; color: #ccc; margin: 0 2px; }
+.stats-total { font-size: 18px; font-weight: 700; color: #999; }
+.stats-label { font-size: 13px; color: #888; margin-left: 4px; }
+.stats-done-list, .stats-remain-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: .6rem; }
+.stats-remain-title { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: .06em; margin-top: 1.1rem; }
+.tag-done {
+  font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px;
+  background: #e6f4ea; color: #155724; display: inline-flex; align-items: center; gap: 4px;
+}
+.tag-remain {
+  font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px;
+  background: #f2f1ed; color: #555;
+}
+.all-done-msg { font-size: 13px; color: #155724; font-weight: 700; text-align: center; margin-top: 1rem; }
+
+/* ── 에러 토스트 ── */
+#toast {
+  position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+  background: #dc3545; color: #fff; padding: 12px 20px; border-radius: 10px;
+  font-size: 13px; font-weight: 600; opacity: 0;
+  transition: opacity .3s; pointer-events: none; z-index: 999;
+  white-space: nowrap;
+}
+#toast.show { opacity: 1; }
+
+/* ── 반응형 ── */
+@media (max-width: 480px) {
+  .header h1 { font-size: 21px; }
+  .card { padding: 1.1rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- 설정 배너 -->
+<div id="setup-banner">
+  ⚠️ <strong>SCRIPT_URL</strong>을 설정해야 합니다.
+  <a href="#" onclick="document.querySelector('#setup-banner').style.display='none'">닫기 ×</a>
+</div>
+
+<!-- 헤더 -->
+<div class="header">
+  <div class="quarter-badge" id="quarterBadge">2026 Q3 동료 리뷰</div>
+  <h1>🍋 놀이터 십계명 리뷰</h1>
+  <p>솔직한 피드백 한 줄이 동료의 성장을 만듭니다.</p>
+</div>
+
+<div class="wrap">
+
+  <!-- 익명 칩 -->
+  <div class="anon-chip">
+    <div class="dot"></div>
+    리뷰 작성자와 대상자가 함께 기록됩니다. 점수는 관리자만 확인할 수 있습니다.
+  </div>
+
+  <!-- 진행률 -->
+  <div class="progress-bar-wrap">
+    <div class="progress-label">
+      <span id="progress-text">0 / 21 문항 완료</span>
+      <span id="progress-pct">0%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+  </div>
+
+  <!-- ① 리뷰 작성자 (본인) -->
+  <div class="card">
+    <label class="field-label">본인이 누구인가요?</label>
+
+    <!-- Google 로그인 영역 -->
+    <div class="google-login-wrap" id="googleLoginWrap">
+      <p>Google 계정으로 로그인하면 본인이 자동으로 선택됩니다.</p>
+      <div id="g_id_onload"
+        data-client_id="525966604833-e7fctqquaup6d01u399gq2p640c2rl20.apps.googleusercontent.com"
+        data-callback="handleGoogleLogin"
+        data-auto_prompt="false">
+      </div>
+      <div class="g_id_signin"
+        data-type="standard"
+        data-size="large"
+        data-theme="outline"
+        data-text="signin_with"
+        data-shape="rectangular"
+        data-locale="ko">
+      </div>
+    </div>
+
+    <!-- 로그인 완료 상태 -->
+    <div class="google-logged-in" id="googleLoggedIn">
+      <img class="avatar" id="googleAvatar" src="" alt="">
+      <div class="info">
+        <span class="name" id="googleName"></span>
+        <span class="email" id="googleEmail"></span>
+      </div>
+      <button class="btn-google-logout" onclick="googleLogout()">로그아웃</button>
+    </div>
+
+    <div class="google-login-divider">직접 선택</div>
+
+    <select id="reviewerSelect" onchange="onReviewerChange()">
+      <option value="">— 본인을 선택해 주세요 —</option>
+      <option>고관희</option><option>권미영</option><option>금창열</option>
+      <option>김라현</option><option>김미리</option><option>김민선</option>
+      <option>김성환</option><option>김수형</option><option>김정은</option>
+      <option>김환이</option><option>노신호</option><option>류하은</option>
+      <option>민병권</option><option>백현규</option><option>서은지</option>
+      <option>서인성</option><option>염진우</option><option>우선아</option>
+      <option>윤지민</option><option>이고운</option><option>이성은</option>
+      <option>이수빈</option><option>이지현</option><option>정서영</option>
+      <option>조나현</option><option>조수경</option><option>조준호</option>
+      <option>차예진</option><option>최선웅</option><option>최정희</option>
+      <option>한홍수</option><option>허용</option>
+    </select>
+    <div id="reviewerLockNote" class="lock-note">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      본인 설정이 고정되었습니다.
+      <a href="#" onclick="unlockReviewer();return false;">변경</a>
+    </div>
+  </div>
+
+  <!-- ② 리뷰 대상자 (본인 제외) -->
+  <div class="card" id="revieweeCard" style="opacity:.45;pointer-events:none">
+    <label class="field-label">누구를 리뷰하시나요? <span style="font-weight:400;color:#aaa">(본인 제외)</span></label>
+    <select id="revieweeSelect" onchange="updateProgress()">
+      <option value="">— 먼저 본인을 선택해 주세요 —</option>
+    </select>
+  </div>
+
+  <!-- ② 본성이 선한 -->
+  <div class="section-lbl">📜 본성이 선한</div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">🐶</div>
+      <div>
+        <div class="card-title">깡아지처럼 따뜻하게 · 관우처럼 의리있게 · 김연아처럼 멀리보자</div>
+        <div class="card-sub">8문항</div>
+      </div>
+    </div>
+    <div id="group1"></div>
+  </div>
+
+  <!-- ③ 탁월함 -->
+  <div class="section-lbl">📜 탁월함</div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">🚀</div>
+      <div>
+        <div class="card-title">콜럼버스 정신 · 궁극인 · 말랑말랑 · 초간단화 · 머스크처럼 빠르게</div>
+        <div class="card-sub">8문항</div>
+      </div>
+    </div>
+    <div id="group2"></div>
+  </div>
+
+  <!-- ④ 본인의 일을 좋아하는 -->
+  <div class="section-lbl">📜 본인의 일을 좋아하는</div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">🎨</div>
+      <div>
+        <div class="card-title">진짜 너 자신을 알라 · 작품에 집착 · 그릿</div>
+        <div class="card-sub">5문항</div>
+      </div>
+    </div>
+    <div id="group3"></div>
+  </div>
+
+  <!-- 제출 버튼 -->
+  <div class="submit-wrap">
+    <button class="btn-submit" id="submitBtn" onclick="submitForm()">
+      <div class="spinner" id="spinner"></div>
+      <svg id="submitIcon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      <span id="submitText">리뷰 제출하기</span>
+    </button>
+    <div class="submit-hint">제출 즉시 구글 스프레드시트에 익명으로 저장됩니다</div>
+  </div>
+
+</div><!-- /wrap -->
+
+<!-- 완료 화면 -->
+<div id="done-screen">
+  <div class="done-icon">🎉</div>
+  <h2 id="done-title">리뷰가 저장됐습니다!</h2>
+  <p id="done-desc">소중한 피드백 감사합니다.<br>구글 스프레드시트에 저장됐어요.</p>
+  <div class="sheet-badge">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    스프레드시트 저장 완료
+  </div>
+
+  <div class="stats-card" id="statsCard">
+    <div class="stats-row">
+      <span class="stats-num" id="statsDone">0</span><span class="stats-slash">/</span><span class="stats-total" id="statsTotal">22</span>
+      <span class="stats-label">명 완료</span>
+    </div>
+    <div class="progress-bar" style="margin-top:10px"><div class="progress-fill" id="statsFill" style="width:0%"></div></div>
+    <div class="stats-done-list" id="statsDoneList"></div>
+    <div class="stats-remain-title" id="statsRemainTitle"></div>
+    <div class="stats-remain-list" id="statsRemainList"></div>
+  </div>
+
+  <button class="btn-another" onclick="resetForm()" id="reviewMoreBtn">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+    다른 동료 리뷰하기
+  </button>
+  <div style="margin-top:14px">
+    <a href="#" onclick="switchReviewer();return false;" style="font-size:12px;color:#aaa;text-decoration:underline">본인이 아니신가요? 작성자 변경</a>
+  </div>
+  <div style="margin-top:10px">
+    <a href="#" onclick="resetAllProgress();return false;" style="font-size:12px;color:#e74c3c;text-decoration:underline">⟳ 처음부터 다시 시작 (모든 기록 초기화)</a>
+  </div>
+</div>
+
+<!-- 에러 토스트 -->
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+//  ★ 설정 — Apps Script 배포 후 이 URL만 바꾸면 됩니다 ★
+// ════════════════════════════════════════════════════════════
+const SCRIPT_URL = 'https://script.google.com/a/macros/azitmaker.com/s/AKfycbyhlX9HJNOlIf9Oe0cJunyYknKt1yQxZJPApv4ovC1L99VWlXC0YlyRBsdYSA285fZY/exec';
+//  예시: 'https://script.google.com/macros/s/AKfy.../exec'
+// ════════════════════════════════════════════════════════════
+
+const QUARTER = '2026 Q3';   // 분기 레이블 (필요시 수정)
+
+const MEMBERS = [
+  '고관희','권미영','금창열','김라현','김미리','김민선','김성환','김수형',
+  '김정은','김환이','노신호','류하은','민병권','백현규','서은지','서인성',
+  '염진우','우선아','윤지민','이고운','이성은','이수빈','이지현','정서영',
+  '조나현','조수경','조준호','차예진','최선웅','최정희','한홍수','허용'
+];
+
+const EMAIL_MAP = {
+  'gowoon@azitmaker.com':    '이고운',
+  'kwanhee@azitmaker.com':   '고관희',
+  'nahyeon@azitmaker.com':   '조나현',
+  'lahyeon@azitmaker.com':   '김라현',
+  'meeree@azitmaker.com':    '김미리',
+  'info@azitmaker.com':      '권미영',
+  'minsun@azitmaker.com':    '김민선',
+  'byeonggwon@azitmaker.com':'민병권',
+  'seoyeong@azitmaker.com':  '정서영',
+  'seona@azitmaker.com':     '우선아',
+  'seonung@azitmaker.com':   '최선웅',
+  'seongeun@azitmaker.com':  '이성은',
+  'seonghwan@azitmaker.com': '김성환',
+  'sugyeong@azitmaker.com':  '조수경',
+  'subin@azitmaker.com':     '이수빈',
+  'soohyung@azitmaker.com':  '김수형',
+  'shinhoe@azitmaker.com':   '노신호',
+  'yejin.c@azitmaker.com':   '차예진',
+  'yong@azitmaker.com':      '허용',
+  'eunji@azitmaker.com':     '서은지',
+  'inseong@azitmaker.com':   '서인성',
+  'jungeun@azitmaker.com':   '김정은',
+  'jeonghee@azitmaker.com':  '최정희',
+  'junho@azitmaker.com':     '조준호',
+  'jimin@azitmaker.com':     '윤지민',
+  'jihyun@azitmaker.com':    '이지현',
+  'jinwoo.y@azitmaker.com':  '염진우',
+  'changyoul@azitmaker.com': '금창열',
+  'haeun@azitmaker.com':     '류하은',
+  'hyeongyu@azitmaker.com':  '백현규',
+  'hongsoo@azitmaker.com':   '한홍수',
+  'hwani@azitmaker.com':     '김환이',
+};
+
+// ── 문항 데이터 ──────────────────────────────────────────────
+const QUESTIONS = [
+  // 본성이 선한 (그룹 1)
+  { id:'q1',  g:1, cat:'깡아지처럼 따뜻하게',           t:"다른 멤버가 힘들어할 때 '괜찮아요?'라며 위로하나요?" },
+  { id:'q2',  g:1, cat:'깡아지처럼 따뜻하게',           t:"힘들어하는 멤버에게 '할 수 있어요!'라며 응원하나요?" },
+  { id:'q3',  g:1, cat:'깡아지처럼 따뜻하게',           t:"다른 멤버들을 위한 '배려 또는 희생정신'을 보여주었나요?" },
+  { id:'q4',  g:1, cat:'관우처럼 의리있게',             t:"'신뢰와 정직함'을 바탕으로 다른 멤버와의 의리를 잘 지키고 있나요?" },
+  { id:'q5',  g:1, cat:'관우처럼 의리있게',             t:"당사자 앞에서 못할 이야기인 '독사과'를 하지 않는 편인가요?" },
+  { id:'q6',  g:1, cat:'관우처럼 의리있게',             t:"당사자 앞에선 못할 이야기를 들으면 '이거 독사과 아닌가요?'라며 문제를 제기하나요?" },
+  { id:'q7',  g:1, cat:'김연아처럼 멀리보자',           t:"장기적 목표를 위해 유혹을 이겨내고 '자기통제'를 잘 유지하나요?" },
+  { id:'q8',  g:1, cat:'김연아처럼 멀리보자',           t:"자기계발을 위해 '운동'이나 '학습'을 꾸준히 하나요?" },
+  // 탁월함 (그룹 2)
+  { id:'q9',  g:2, cat:'목표-목표-목표-콜럼버스 정신!', t:"'초구체적인 목표'를 설정하나요?" },
+  { id:'q10', g:2, cat:'목표-목표-목표-콜럼버스 정신!', t:"설정한 '목표를 정확하게 인지'하고 업무를 진행하나요?" },
+  { id:'q11', g:2, cat:'문제의 본질 궁극인',            t:"문제의 진짜 원인인 '궁극인'을 찾아내는 능력이 탁월한가요?" },
+  { id:'q12', g:2, cat:'말랑말랑',                      t:"복잡한 문제나 해결책을 '쉽게' 설명하나요?" },
+  { id:'q13', g:2, cat:'초간단화',                      t:"복잡한 문제나 해결책을 아주 '간단'하게 설명하나요?" },
+  { id:'q14', g:2, cat:'머스크처럼 빠르게',             t:"새로운 아이디어나 프로젝트를 실행하기 전, 일단 부딪히기보다는 '시뮬레이션'을 통해 다양한 가능성을 탐색하나요?" },
+  { id:'q15', g:2, cat:'머스크처럼 빠르게',             t:"'아구행(아주아주 구체적인 행동)'을 나열해서 계획을 세우고 따르나요?" },
+  { id:'q16', g:2, cat:'머스크처럼 빠르게',             t:"'실행이 답이다' 정신으로 빠르게 실행하나요?" },
+  // 본인의 일을 좋아하는 (그룹 3)
+  { id:'q17', g:3, cat:'진짜 너 자신을 알라!',          t:"본인의 '진짜 장점'과 '진짜 단점'을 정확히 인지하고 객관적으로 평가하나요?" },
+  { id:'q18', g:3, cat:'진짜 너 자신을 알라!',          t:"'솔공' 정신으로 동료들에게 피드백을 요청하고 자기 개선에 활용하나요?" },
+  { id:'q19', g:3, cat:'작품에 집착하는 완벽주의 괴짜!',t:"'최고의 작품'을 만든다는 마인드로 담당 업무에 높은 완성도를 추구하나요?" },
+  { id:'q20', g:3, cat:'작품에 집착하는 완벽주의 괴짜!',t:"본인의 업무에 즐겁게 몰입하나요?" },
+  { id:'q21', g:3, cat:'그으으으으으으릿!',              t:"어려움이 있어도 포기하지 않고 '마지막 2%'를 위해 끝까지 노력하나요?" },
+];
+
+const CHIPS = {
+  1:'전혀 아님', 2:'아님', 3:'거의 아님', 4:'낮음', 5:'보통',
+  6:'약간 그렇다', 7:'그렇다', 8:'매우 그렇다', 9:'거의 최고', 10:'최고'
+};
+const CHIP_COLORS = {
+  1:'#fde8e8:#9b1c1c', 2:'#fde8e8:#9b1c1c', 3:'#fff3cd:#856404',
+  4:'#fff3cd:#856404', 5:'#f0f0f0:#666',
+  6:'#d4edda:#155724', 7:'#d4edda:#155724',
+  8:'#c3e6cb:#0b4a22', 9:'#1a1a1a:#fff', 10:'#1a1a1a:#fff'
+};
+
+// ── DOM 생성 ──────────────────────────────────────────────────
+function buildQuestions() {
+  [1,2,3].forEach(g => {
+    const wrap = document.getElementById('group'+g);
+    QUESTIONS.filter(q => q.g === g).forEach(q => {
+      const num = QUESTIONS.indexOf(q) + 1;
+      const div = document.createElement('div');
+      div.className = 'question';
+      div.innerHTML = `
+        <div class="q-meta">
+          <div class="q-num">${num}</div>
+          <div class="q-body">
+            <div class="cat">${q.cat}</div>
+            <div class="text">${q.t}</div>
+          </div>
+        </div>
+        <div class="slider-box">
+          <div class="slider-ends"><span>1 — 전혀 아님</span><span>10 — 매우 그렇다</span></div>
+          <input type="range" min="1" max="10" value="5" step="1" id="${q.id}"
+            oninput="syncSlider(this)" style="--pct:44.4%">
+          <div class="score-row">
+            <span class="score-num" id="${q.id}_v">5</span>
+            <span class="score-chip" id="${q.id}_c">보통</span>
+          </div>
+        </div>`;
+      wrap.appendChild(div);
+    });
+  });
+  QUESTIONS.forEach(q => syncSlider(document.getElementById(q.id)));
+}
+
+function syncSlider(el) {
+  const v = parseInt(el.value);
+  el.style.setProperty('--pct', ((v-1)/9*100).toFixed(1)+'%');
+  document.getElementById(el.id+'_v').textContent = v;
+  const chip = document.getElementById(el.id+'_c');
+  chip.textContent = CHIPS[v];
+  const [bg, fg] = CHIP_COLORS[v].split(':');
+  chip.style.background = bg; chip.style.color = fg;
+  updateProgress();
+}
+
+// ── 진행상황 저장 (작성자별 완료 목록) ───────────────────────
+const PROGRESS_KEY = 'azit_review_progress';
+function loadProgress() { return JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{}'); }
+function getCompleted(reviewer) {
+  const all = loadProgress();
+  return all[reviewer] || [];
+}
+function markCompleted(reviewer, reviewee) {
+  const all = loadProgress();
+  if (!all[reviewer]) all[reviewer] = [];
+  if (!all[reviewer].includes(reviewee)) all[reviewer].push(reviewee);
+  localStorage.setItem(PROGRESS_KEY, JSON.stringify(all));
+}
+
+// ── 작성자 변경 → 대상자 목록 재생성 (본인 + 이미 리뷰한 동료 제외) ──
+function onReviewerChange() {
+  const reviewer = document.getElementById('reviewerSelect').value;
+  const sel      = document.getElementById('revieweeSelect');
+  const card     = document.getElementById('revieweeCard');
+
+  sel.innerHTML = '';
+  if (!reviewer) {
+    sel.innerHTML = '<option value="">— 먼저 본인을 선택해 주세요 —</option>';
+    card.style.opacity = '.45';
+    card.style.pointerEvents = 'none';
+    updateProgress();
+    return;
+  }
+
+  const done = getCompleted(reviewer);
+  const remaining = MEMBERS.filter(m => m !== reviewer && !done.includes(m));
+
+  if (remaining.length === 0) {
+    sel.innerHTML = '<option value="">🎉 모든 동료를 리뷰했습니다!</option>';
+    card.style.opacity = '.6';
+    card.style.pointerEvents = 'none';
+  } else {
+    sel.innerHTML = '<option value="">— 리뷰 대상자를 선택해 주세요 —</option>';
+    remaining.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = opt.textContent = m;
+      sel.appendChild(opt);
+    });
+    card.style.opacity = '1';
+    card.style.pointerEvents = 'auto';
+  }
+
+  // 작성자 선택 완료 → 잠금 (작성자 변경 링크로만 해제 가능)
+  lockReviewer();
+  updateProgress();
+}
+
+// ── Google 로그인 콜백 ────────────────────────────────────────
+function handleGoogleLogin(response) {
+  const payload = JSON.parse(atob(response.credential.split('.')[1]));
+  const email   = payload.email;
+  const name    = EMAIL_MAP[email];
+
+  // 로그인 UI 업데이트
+  document.getElementById('googleLoggedIn').style.display = 'flex';
+  document.getElementById('googleLoginWrap').style.display = 'none';
+  document.getElementById('googleAvatar').src = payload.picture || '';
+  document.getElementById('googleName').textContent  = name ? name + ' 님' : payload.name;
+  document.getElementById('googleEmail').textContent = email;
+
+  if (name && MEMBERS.includes(name)) {
+    const sel = document.getElementById('reviewerSelect');
+    sel.value = name;
+    onReviewerChange();
+  } else {
+    alert('등록되지 않은 이메일입니다. 직접 선택해 주세요.\n(' + email + ')');
+  }
+}
+
+function googleLogout() {
+  document.getElementById('googleLoggedIn').style.display = 'none';
+  document.getElementById('googleLoginWrap').style.display = 'flex';
+  unlockReviewer();
+  document.getElementById('reviewerSelect').value = '';
+  onReviewerChange();
+}
+
+function lockReviewer() {
+  const reviewerSel = document.getElementById('reviewerSelect');
+  if (!reviewerSel.value) return;
+  reviewerSel.disabled = true;
+  document.getElementById('reviewerLockNote').style.display = 'flex';
+}
+
+function unlockReviewer() {
+  const reviewerSel = document.getElementById('reviewerSelect');
+  reviewerSel.disabled = false;
+  document.getElementById('reviewerLockNote').style.display = 'none';
+  // Google 로그인 상태도 초기화
+  document.getElementById('googleLoggedIn').style.display = 'none';
+  document.getElementById('googleLoginWrap').style.display = 'flex';
+}
+
+// ── 완료 화면 통계 렌더링 ────────────────────────────────────
+function renderDoneStats(reviewer) {
+  const total = MEMBERS.length - 1; // 본인 제외
+  const done  = getCompleted(reviewer);
+  const remaining = MEMBERS.filter(m => m !== reviewer && !done.includes(m));
+
+  document.getElementById('statsDone').textContent  = done.length;
+  document.getElementById('statsTotal').textContent = total;
+  document.getElementById('statsFill').style.width  = Math.round(done.length/total*100) + '%';
+
+  const doneListEl = document.getElementById('statsDoneList');
+  doneListEl.innerHTML = done.map(n =>
+    `<span class="tag-done"><svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>${n}</span>`
+  ).join('');
+
+  const remainTitleEl = document.getElementById('statsRemainTitle');
+  const remainListEl  = document.getElementById('statsRemainList');
+  const remainBtn     = document.getElementById('reviewMoreBtn');
+
+  if (remaining.length === 0) {
+    remainTitleEl.textContent = '';
+    remainListEl.innerHTML = '<div class="all-done-msg">🎉 모든 동료 리뷰를 완료했습니다!</div>';
+    remainBtn.style.display = 'none';
+  } else {
+    remainTitleEl.textContent = `남은 동료 (${remaining.length}명)`;
+    remainListEl.innerHTML = remaining.map(n => `<span class="tag-remain">${n}</span>`).join('');
+    remainBtn.style.display = 'inline-flex';
+  }
+}
+
+// ── 진행률 ───────────────────────────────────────────────────
+function updateProgress() {
+  const answered = QUESTIONS.filter(q => document.getElementById(q.id).value !== '').length;
+  const total = QUESTIONS.length;
+  const pct = Math.round(answered / total * 100);
+  document.getElementById('progress-text').textContent = `${answered} / ${total} 문항 완료`;
+  document.getElementById('progress-pct').textContent   = pct + '%';
+  document.getElementById('progress-fill').style.width  = pct + '%';
+}
+
+// ── 제출 ─────────────────────────────────────────────────────
+async function submitForm() {
+  const reviewer = document.getElementById('reviewerSelect').value;
+  const rv       = document.getElementById('revieweeSelect').value;
+  if (!reviewer) { showToast('본인을 먼저 선택해 주세요.'); return; }
+  if (!rv)       { showToast('리뷰 대상자를 선택해 주세요.'); return; }
+
+  if (SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+    showToast('Apps Script URL을 먼저 설정해 주세요.'); return;
+  }
+
+  // 로딩 상태
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  document.getElementById('spinner').style.display = 'block';
+  document.getElementById('submitIcon').style.display = 'none';
+  document.getElementById('submitText').textContent = '전송 중...';
+
+  const payload = {
+    timestamp: new Date().toISOString(),
+    quarter:   QUARTER,
+    reviewer:  reviewer,
+    reviewee:  rv,
+  };
+  QUESTIONS.forEach((q, i) => {
+    payload[`q${i+1}`] = parseInt(document.getElementById(q.id).value);
+  });
+
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: JSON.stringify(payload),
+    });
+    // 진행상황 기록 + 완료 화면
+    markCompleted(reviewer, rv);
+    renderDoneStats(reviewer);
+    document.querySelector('.wrap').style.display = 'none';
+    document.getElementById('done-screen').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (err) {
+    showToast('전송 실패. 네트워크를 확인하고 다시 시도해 주세요.');
+    btn.disabled = false;
+    document.getElementById('spinner').style.display = 'none';
+    document.getElementById('submitIcon').style.display = '';
+    document.getElementById('submitText').textContent = '리뷰 제출하기';
+  }
+}
+
+// ── 다시 작성 ────────────────────────────────────────────────
+function resetForm() {
+  // 작성자는 유지 — 대상자 목록만 (이번 제출분 제외하고) 다시 생성
+  onReviewerChange();
+  QUESTIONS.forEach(q => { const el = document.getElementById(q.id); el.value = 5; syncSlider(el); });
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = false;
+  document.getElementById('spinner').style.display = 'none';
+  document.getElementById('submitIcon').style.display = '';
+  document.getElementById('submitText').textContent = '리뷰 제출하기';
+  document.getElementById('done-screen').style.display = 'none';
+  document.querySelector('.wrap').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── 작성자 전환(다른 사람으로 다시 시작) ─────────────────────
+function switchReviewer() {
+  unlockReviewer();
+  document.getElementById('reviewerSelect').value = '';
+  onReviewerChange();
+  document.getElementById('done-screen').style.display = 'none';
+  document.querySelector('.wrap').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── 전체 초기화 (처음부터 다시 시작) ────────────────────────
+function resetAllProgress() {
+  if (!confirm('모든 진행 기록을 초기화하고 처음부터 다시 시작하시겠습니까?\n(지금까지 제출된 리뷰 데이터는 그대로 유지됩니다)')) return;
+  localStorage.removeItem(PROGRESS_KEY);
+  unlockReviewer();
+  document.getElementById('reviewerSelect').value = '';
+  onReviewerChange();
+  QUESTIONS.forEach(q => {
+    const el = document.getElementById(q.id);
+    if (el) { el.value = 5; syncSlider(el); }
+  });
+  document.getElementById('done-screen').style.display = 'none';
+  document.querySelector('.wrap').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── 토스트 ───────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── 초기화 ───────────────────────────────────────────────────
+buildQuestions();
+
+// 분기 자동 설정
+(function() {
+  const now = new Date();
+  const q = Math.floor(now.getMonth() / 3) + 1;
+  document.getElementById('quarterBadge').textContent = `${now.getFullYear()} Q${q} 동료 리뷰`;
+})();
+
+// SCRIPT_URL 미설정 경고
+if (SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+  document.getElementById('setup-banner').style.display = 'block';
+}
+</script>
+</body>
+</html>
