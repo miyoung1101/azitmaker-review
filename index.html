@@ -685,9 +685,9 @@ function unlockReviewer() {
 
 // ── 완료 화면 통계 렌더링 ────────────────────────────────────
 function renderDoneStats(reviewer) {
-  const total = MEMBERS.length - 1; // 본인 제외
+  const total = MEMBERS.length; // 셀프 리뷰 포함
   const done  = getCompleted(reviewer);
-  const remaining = MEMBERS.filter(m => m !== reviewer && !done.includes(m));
+  const remaining = MEMBERS.filter(m => !done.includes(m));
 
   document.getElementById('statsDone').textContent  = done.length;
   document.getElementById('statsTotal').textContent = total;
@@ -756,7 +756,7 @@ async function submitForm() {
     saveAnswerLocally(reviewer, rv, payload);
     markCompleted(reviewer, rv);
 
-    const remaining = MEMBERS.filter(m => m !== reviewer && !getCompleted(reviewer).includes(m));
+    const remaining = MEMBERS.filter(m => !getCompleted(reviewer).includes(m));
 
     if (remaining.length === 0) {
       // 모든 동료 리뷰 완료 → 한 번에 스프레드시트로 전송
